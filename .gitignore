@@ -1,0 +1,17 @@
+# Dependencies
+/node_modules
+/.pnpm-store
+.npm
+.yarn
+
+# Next.js
+/.next/
+/out/
+
+# Environment
+.env*
+!.env.example
+
+# Misc
+.DS_Store
+*.log

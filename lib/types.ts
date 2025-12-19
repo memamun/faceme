@@ -10,6 +10,9 @@ export interface Memory {
   is_pinned: boolean
   media?: MemoryMedia[]
   links?: MemoryLink[]
+  reactions?: Reaction[]
+  comments?: Comment[]
+  profile?: Profile
 }
 
 export interface MemoryMedia {
@@ -68,4 +71,52 @@ export const TAG_SUGGESTIONS = [
   "Birthday",
   "Anniversary",
   "Milestone",
+] as const
+
+export interface Profile {
+  id: string
+  display_name: string | null
+  bio: string | null
+  avatar_url: string | null
+  cover_url: string | null
+  location: string | null
+  birthday: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface Reaction {
+  id: string
+  memory_id: string
+  user_id: string
+  reaction_type: "love" | "like" | "celebrate" | "support" | "laugh"
+  created_at: string
+  profile?: Profile
+}
+
+export interface Comment {
+  id: string
+  memory_id: string
+  user_id: string
+  content: string
+  created_at: string
+  updated_at: string
+  profile?: Profile
+}
+
+export interface Friendship {
+  id: string
+  user_id: string
+  friend_id: string
+  status: "pending" | "accepted" | "declined"
+  created_at: string
+  profile?: Profile
+}
+
+export const REACTION_OPTIONS = [
+  { value: "love", label: "Love", emoji: "❤️" },
+  { value: "like", label: "Like", emoji: "👍" },
+  { value: "celebrate", label: "Celebrate", emoji: "🎉" },
+  { value: "support", label: "Support", emoji: "🤗" },
+  { value: "laugh", label: "Laugh", emoji: "😂" },
 ] as const

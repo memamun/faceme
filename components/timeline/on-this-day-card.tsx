@@ -3,7 +3,7 @@
 import type { Memory } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { MemoryCard } from "./memory-card"
-import { Sparkles } from "lucide-react"
+import { Clock } from "lucide-react"
 import { format } from "date-fns"
 
 interface OnThisDayCardProps {
@@ -15,21 +15,21 @@ export function OnThisDayCard({ memories }: OnThisDayCardProps) {
   const formattedDate = format(today, "MMMM d")
 
   return (
-    <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Sparkles className="h-5 w-5 text-primary" />
+    <Card className="mb-6 overflow-hidden border-0 shadow-sm">
+      <CardHeader className="border-b bg-gradient-to-r from-amber-50 to-orange-50 pb-3 dark:from-amber-950/20 dark:to-orange-950/20">
+        <CardTitle className="flex items-center gap-2 text-base font-semibold">
+          <Clock className="h-5 w-5 text-amber-600" />
           On This Day - {formattedDate}
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <CardContent className="p-4">
+        <div className="flex gap-3 overflow-x-auto pb-2">
           {memories.map((memory) => {
             const year = new Date(memory.memory_date).getFullYear()
             const yearsAgo = today.getFullYear() - year
             return (
-              <div key={memory.id} className="relative">
-                <div className="absolute -top-2 left-3 z-10 rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
+              <div key={memory.id} className="relative min-w-[280px] max-w-[300px] flex-shrink-0">
+                <div className="absolute -top-1 left-3 z-10 rounded-full bg-amber-500 px-2 py-0.5 text-xs font-medium text-white">
                   {yearsAgo} {yearsAgo === 1 ? "year" : "years"} ago
                 </div>
                 <MemoryCard memory={memory} compact />

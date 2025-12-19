@@ -4,14 +4,21 @@ import { useRouter, useSearchParams } from "next/navigation"
 import type { Memory } from "@/lib/types"
 import { MemoryCard } from "./memory-card"
 import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ChevronLeft, ChevronRight, Calendar } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { ChevronLeft, ChevronRight, Calendar, SlidersHorizontal } from "lucide-react"
 
 interface TimelineViewProps {
   memories: Memory[]
   currentYear: number
   currentMonth?: number
   availableYears: number[]
+  currentUserId?: string
 }
 
 const MONTHS = [
@@ -29,7 +36,13 @@ const MONTHS = [
   "December",
 ]
 
-export function TimelineView({ memories, currentYear, currentMonth, availableYears }: TimelineViewProps) {
+export function TimelineView({
+  memories,
+  currentYear,
+  currentMonth,
+  availableYears,
+  currentUserId,
+}: TimelineViewProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -40,12 +53,12 @@ export function TimelineView({ memories, currentYear, currentMonth, availableYea
     router.push(`/timeline?${params.toString()}`)
   }
 
-  const navigateToMonth = (month: string) => {
+  const navigateToMonth = (month: number | null) => {
     const params = new URLSearchParams(searchParams.toString())
-    if (month === "all") {
+    if (month === null) {
       params.delete("month")
     } else {
-      params.set("month", month)
+      params.set("month", month.toString())
     }
     router.push(`/timeline?${params.toString()}`)
   }
@@ -76,63 +89,77 @@ export function TimelineView({ memories, currentYear, currentMonth, availableYea
   )
 
   return (
-    <div className="space-y-6">
-      {/* Navigation Controls */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between rounded-lg bg-card p-3 shadow-sm">
+        <div className="flex items-center gap-1">
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
             onClick={goToPreviousYear}
             disabled={availableYears.indexOf(currentYear) >= availableYears.length - 1}
+            className="h-8 w-8"
           >
             <ChevronLeft className="h-4 w-4" />
-            <span className="sr-only">Previous year</span>
           </Button>
 
-          <Select value={currentYear.toString()} onValueChange={(v) => navigateToYear(Number.parseInt(v))}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="gap-1 text-lg font-semibold">
+                {currentYear}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
               {availableYears.map((year) => (
-                <SelectItem key={year} value={year.toString()}>
+                <DropdownMenuItem
+                  key={year}
+                  onClick={() => navigateToYear(year)}
+                  className={year === currentYear ? "bg-muted" : ""}
+                >
                   {year}
-                </SelectItem>
+                </DropdownMenuItem>
               ))}
-            </SelectContent>
-          </Select>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
             onClick={goToNextYear}
             disabled={availableYears.indexOf(currentYear) <= 0}
+            className="h-8 w-8"
           >
             <ChevronRight className="h-4 w-4" />
-            <span className="sr-only">Next year</span>
           </Button>
         </div>
 
-        <Select value={currentMonth?.toString() || "all"} onValueChange={navigateToMonth}>
-          <SelectTrigger className="w-40">
-            <Calendar className="mr-2 h-4 w-4" />
-            <SelectValue placeholder="All months" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All months</SelectItem>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="gap-2">
+              <SlidersHorizontal className="h-4 w-4" />
+              {currentMonth ? MONTHS[currentMonth - 1] : "All"}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => navigateToMonth(null)} className={!currentMonth ? "bg-muted" : ""}>
+              All months
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             {MONTHS.map((month, index) => (
-              <SelectItem key={month} value={(index + 1).toString()}>
+              <DropdownMenuItem
+                key={month}
+                onClick={() => navigateToMonth(index + 1)}
+                className={currentMonth === index + 1 ? "bg-muted" : ""}
+              >
                 {month}
-              </SelectItem>
+              </DropdownMenuItem>
             ))}
-          </SelectContent>
-        </Select>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Timeline */}
       {memories.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="flex flex-col items-center justify-center rounded-lg bg-card py-20 text-center shadow-sm">
           <Calendar className="mb-4 h-12 w-12 text-muted-foreground/50" />
           <h3 className="text-lg font-medium text-foreground">No memories yet</h3>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -145,24 +172,24 @@ export function TimelineView({ memories, currentYear, currentMonth, availableYea
         // Single month view
         <div className="space-y-4">
           {memories.map((memory) => (
-            <MemoryCard key={memory.id} memory={memory} />
+            <MemoryCard key={memory.id} memory={memory} currentUserId={currentUserId} />
           ))}
         </div>
       ) : (
         // Grouped by month view
-        <div className="space-y-8">
+        <div className="space-y-6">
           {Object.entries(memoriesByMonth)
             .sort(([a], [b]) => Number.parseInt(b) - Number.parseInt(a))
             .map(([monthIndex, monthMemories]) => (
               <div key={monthIndex}>
-                <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
-                  <span className="h-px flex-1 bg-border" />
-                  <span className="px-3">{MONTHS[Number.parseInt(monthIndex)]}</span>
-                  <span className="h-px flex-1 bg-border" />
-                </h2>
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="h-px flex-1 bg-border" />
+                  <h2 className="text-sm font-semibold text-muted-foreground">{MONTHS[Number.parseInt(monthIndex)]}</h2>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
                 <div className="space-y-4">
                   {monthMemories.map((memory) => (
-                    <MemoryCard key={memory.id} memory={memory} />
+                    <MemoryCard key={memory.id} memory={memory} currentUserId={currentUserId} />
                   ))}
                 </div>
               </div>

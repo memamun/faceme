@@ -2,6 +2,7 @@ import type React from "react"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { AppHeader } from "@/components/app-header"
+import type { Profile } from "@/lib/types"
 
 export default async function TimelineLayout({
   children,
@@ -17,10 +18,12 @@ export default async function TimelineLayout({
     redirect("/auth/login")
   }
 
+  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+
   return (
-    <div className="min-h-screen bg-background">
-      <AppHeader user={user} />
-      <main className="container mx-auto px-4 py-6">{children}</main>
+    <div className="min-h-screen bg-muted/30">
+      <AppHeader user={user} profile={profile as Profile | null} />
+      <main className="mx-auto max-w-7xl px-4 py-6">{children}</main>
     </div>
   )
 }
